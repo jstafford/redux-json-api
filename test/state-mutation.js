@@ -10,15 +10,14 @@ import {
 } from '../src/state-mutation';
 
 import {
-  reducer
+  reducer,
+  IS_UPDATING
 } from '../src/jsonapi';
 
 import {
   apiState,
   patchedResource
 } from './payloads/failingReverseRelationshipUpdate';
-
-import { IS_UPDATING } from '../src/jsonapi';
 
 import topics from './payloads/topics.json';
 
@@ -150,9 +149,7 @@ const state = {
 
 describe('[State mutation] Insertion of resources', () => {
   it('should read and insert all resources into state', () => {
-    const updatedState = updateOrInsertResourcesIntoState(
-      state, topics.data
-    );
+    const updatedState = updateOrInsertResourcesIntoState(state, topics.data);
 
     expect(updatedState.topics.data.length).toEqual(topics.data.length);
   });
@@ -161,18 +158,14 @@ describe('[State mutation] Insertion of resources', () => {
 describe('[State mutation] Insertion of empty resources type', () => {
   it('should insert empty resources type into state', () => {
     const resourcesType = 'newResourcesType';
-    const updatedState = ensureResourceTypeInState(
-      state, resourcesType
-    );
+    const updatedState = ensureResourceTypeInState(state, resourcesType);
 
     expect(updatedState[resourcesType].data.length).toEqual(0);
   });
 
   it('should not mutate state if resources type exists', () => {
     const resourcesType = 'users';
-    const updatedState = ensureResourceTypeInState(
-      state, resourcesType
-    );
+    const updatedState = ensureResourceTypeInState(state, resourcesType);
 
     expect(updatedState[resourcesType].data).toEqual(state[resourcesType].data);
   });
@@ -240,9 +233,7 @@ describe('[State Mutation] Update or Reverse relationships', () => {
     const apiUpdated = createAction('API_UPDATED');
     const updatedState = reducer(apiState, apiUpdated(patchedResource));
 
-    expect(
-      updatedState.zenAccounts.data[0].relationships.expenseItems.data.length
-    ).toEqual(1);
+    expect(updatedState.zenAccounts.data[0].relationships.expenseItems.data.length).toEqual(1);
   });
 });
 
@@ -268,7 +259,7 @@ describe('[State Mutation]: Create new reference when Object is mutated', () => 
       IS_UPDATING
     ).value();
 
-    expect(updatedState.users.data[0]).toNotBe(state.users.data[0]);
+    expect(updatedState.users.data[0]).not.toBe(state.users.data[0]);
     expect(updatedState.users.data[1]).toBe(state.users.data[1]);
   });
 
@@ -278,7 +269,7 @@ describe('[State Mutation]: Create new reference when Object is mutated', () => 
       resource.relationships.transaction
     )(state.transactions.data);
 
-    expect(updatedResources[0]).toNotBe(state.transactions.data[0]);
+    expect(updatedResources[0]).not.toBe(state.transactions.data[0]);
     expect(updatedResources[1]).toBe(state.transactions.data[1]);
   });
 
@@ -296,7 +287,7 @@ describe('[State Mutation]: Create new reference when Object is mutated', () => 
       }
     });
 
-    expect(updatedState.users.data[0]).toNotBe(state.users.data[0]);
+    expect(updatedState.users.data[0]).not.toBe(state.users.data[0]);
     expect(updatedState.users.data[1]).toBe(state.users.data[1]);
   });
 

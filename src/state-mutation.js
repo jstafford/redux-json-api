@@ -1,7 +1,7 @@
+import equal from 'deep-equal';
 import imm from 'object-path-immutable';
 import pluralize from 'pluralize';
 import { hasOwnProperties } from './utils';
-import equal from 'deep-equal';
 
 export const makeUpdateReverseRelationship = (
   resource,
@@ -24,8 +24,7 @@ export const makeUpdateReverseRelationship = (
     const relCase = [singular, plural]
       .find(r => (
         hasOwnProperties(foreignResources[idx], ['relationships', r])
-      )
-    );
+      ));
 
     if (!relCase) {
       return foreignResources;
@@ -48,9 +47,7 @@ export const makeUpdateReverseRelationship = (
       (
         newRelation
         && Array.isArray(foreignResourceRel)
-        && ~foreignResourceRel.findIndex(
-          rel => rel.id === newRelation.id && rel.type === newRelation.type
-        )
+        && (foreignResourceRel.findIndex(rel => rel.id === newRelation.id && rel.type === newRelation.type) > -1)
       )
       || (
         newRelation
@@ -89,9 +86,7 @@ const stateContainsResource = (state, resource) => {
   const updatePath = [resource.type, 'data'];
 
   if (hasOwnProperties(state, updatePath)) {
-    return state[resource.type].data.findIndex(
-      item => item.id === resource.id
-    ) > -1;
+    return state[resource.type].data.findIndex(item => item.id === resource.id) > -1;
   }
 
   return false;
@@ -121,11 +116,11 @@ export const updateOrInsertResource = (state, resource) => {
     const idx = resources.findIndex(item => item.id === resource.id);
 
     const relationships = {};
-    for (const relationship in resource.relationships) {
+    Object.keys(resource.relationships).forEach((relationship) => {
       if (!resource.relationships[relationship].data) {
         relationships[relationship] = resources[idx].relationships[relationship];
       }
-    }
+    });
     Object.assign(resource.relationships, relationships);
 
     if (!equal(resources[idx], resource)) {
@@ -141,7 +136,7 @@ export const updateOrInsertResource = (state, resource) => {
     return newState;
   }
 
-  Object.keys(rels).forEach(relKey => {
+  Object.keys(rels).forEach((relKey) => {
     if (!hasOwnProperties(rels[relKey], ['data', 'type'])) {
       return;
     }
@@ -152,9 +147,7 @@ export const updateOrInsertResource = (state, resource) => {
       return;
     }
 
-    const updateReverseRelationship = makeUpdateReverseRelationship(
-      resource, rels[relKey]
-    );
+    const updateReverseRelationship = makeUpdateReverseRelationship(resource, rels[relKey]);
 
     newState = imm.set(
       newState,
@@ -187,9 +180,7 @@ export const removeResourceFromState = (state, resource) => {
 
       return newState.set(
         entityPath,
-        updateReverseRelationship(
-          state[resource.relationships[key].data.type].data
-        )
+        updateReverseRelationship(state[resource.relationships[key].data.type].data)
       );
     }
 

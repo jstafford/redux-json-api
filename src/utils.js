@@ -7,9 +7,7 @@ export const jsonContentTypes = [
   'application/vnd.api+json'
 ];
 
-const hasValidContentType = response => jsonContentTypes.some(
-  contentType => response.headers['content-type'].indexOf(contentType) > -1
-);
+const hasValidContentType = response => jsonContentTypes.some(contentType => response.headers['content-type'].indexOf(contentType) > -1);
 
 export const noop = () => {};
 
@@ -21,7 +19,7 @@ export const apiRequest = (url, options = {}) => {
     .value();
 
   return axios(allOptions)
-    .then(res => {
+    .then((res) => {
       if (res.status === 204) {
         return res;
       }
@@ -44,7 +42,7 @@ export const hasOwnProperties = (obj, propertyTree) => {
     return false;
   }
   const property = propertyTree[0];
-  const hasProperty = obj.hasOwnProperty(property);
+  const hasProperty = Object.prototype.hasOwnProperty.call(obj, property);
   if (hasProperty) {
     if (propertyTree.length === 1) {
       return hasProperty;
