@@ -57,6 +57,9 @@ export const getPaginationUrl = (response, direction, path) => {
     return null;
   }
 
-  return response.links[direction]
-    .replace(`${path}/`, '');
+  const paginationUrl = response.links[direction];
+  if (!paginationUrl) {
+    return null;
+  }
+  return paginationUrl.replace(`${path}/`, '');
 };
