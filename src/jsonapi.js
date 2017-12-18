@@ -304,5 +304,6 @@ export const reducer = handleActions({
   isDeleting: 0,
   endpoint: {
     axiosConfig: {}
-  }
+  },
+  resources: {}
 });

@@ -56,90 +56,92 @@ const state = {
       Accept: 'application/vnd.api+json'
     }
   },
-  users: {
-    data: [
-      {
-        type: 'users',
-        id: '1',
-        attributes: {
-          name: 'John Doe'
-        },
-        relationships: {
-          companies: {
-            data: null
-          }
-        }
-      },
-      {
-        type: 'users',
-        id: '2',
-        attributes: {
-          name: 'Emily Jane'
-        },
-        relationships: {
-          companies: {
-            data: null
-          }
-        }
-      }
-    ]
-  },
-  transactions: {
-    data: [
-      {
-        type: 'transactions',
-        id: '35',
-        attributes: {
-          description: 'ABC',
-          createdAt: '2016-02-12T13:34:01+0000',
-          updatedAt: '2016-02-19T11:52:43+0000',
-        },
-        relationships: {
-          task: {
-            data: null
-          }
-        },
-        links: {
-          self: 'http://localhost/transactions/34'
-        }
-      }, {
-        type: 'transactions',
-        id: '36',
-        attributes: {
-          description: 'ABC',
-          createdAt: '2016-02-12T13:34:01+0000',
-          updatedAt: '2016-02-19T11:52:43+0000',
-        },
-        relationships: {
-          task: {
-            data: null
-          }
-        },
-        links: {
-          self: 'http://localhost/transactions/34'
-        }
-      },
-      {
-        type: 'transactions',
-        id: '37',
-        attributes: {
-          description: 'ABC',
-          createdAt: '2016-02-12T13:34:01+0000',
-          updatedAt: '2016-02-19T11:52:43+0000',
-        },
-        relationships: {
-          task: {
-            data: {
-              type: 'tasks',
-              id: '43'
+  resources: {
+    users: {
+      data: [
+        {
+          type: 'users',
+          id: '1',
+          attributes: {
+            name: 'John Doe'
+          },
+          relationships: {
+            companies: {
+              data: null
             }
           }
         },
-        links: {
-          self: 'http://localhost/transactions/34'
+        {
+          type: 'users',
+          id: '2',
+          attributes: {
+            name: 'Emily Jane'
+          },
+          relationships: {
+            companies: {
+              data: null
+            }
+          }
         }
-      }
-    ]
+      ]
+    },
+    transactions: {
+      data: [
+        {
+          type: 'transactions',
+          id: '35',
+          attributes: {
+            description: 'ABC',
+            createdAt: '2016-02-12T13:34:01+0000',
+            updatedAt: '2016-02-19T11:52:43+0000',
+          },
+          relationships: {
+            task: {
+              data: null
+            }
+          },
+          links: {
+            self: 'http://localhost/transactions/34'
+          }
+        }, {
+          type: 'transactions',
+          id: '36',
+          attributes: {
+            description: 'ABC',
+            createdAt: '2016-02-12T13:34:01+0000',
+            updatedAt: '2016-02-19T11:52:43+0000',
+          },
+          relationships: {
+            task: {
+              data: null
+            }
+          },
+          links: {
+            self: 'http://localhost/transactions/34'
+          }
+        },
+        {
+          type: 'transactions',
+          id: '37',
+          attributes: {
+            description: 'ABC',
+            createdAt: '2016-02-12T13:34:01+0000',
+            updatedAt: '2016-02-19T11:52:43+0000',
+          },
+          relationships: {
+            task: {
+              data: {
+                type: 'tasks',
+                id: '43'
+              }
+            }
+          },
+          links: {
+            self: 'http://localhost/transactions/34'
+          }
+        }
+      ]
+    },
   },
   isCreating: 0,
   isReading: 0,
@@ -151,7 +153,7 @@ describe('[State mutation] Insertion of resources', () => {
   it('should read and insert all resources into state', () => {
     const updatedState = updateOrInsertResourcesIntoState(state, topics.data);
 
-    expect(updatedState.topics.data.length).toEqual(topics.data.length);
+    expect(updatedState.resources.topics.data.length).toEqual(topics.data.length);
   });
 });
 
@@ -160,14 +162,14 @@ describe('[State mutation] Insertion of empty resources type', () => {
     const resourcesType = 'newResourcesType';
     const updatedState = ensureResourceTypeInState(state, resourcesType);
 
-    expect(updatedState[resourcesType].data.length).toEqual(0);
+    expect(updatedState.resources[resourcesType].data.length).toEqual(0);
   });
 
   it('should not mutate state if resources type exists', () => {
     const resourcesType = 'users';
     const updatedState = ensureResourceTypeInState(state, resourcesType);
 
-    expect(updatedState[resourcesType].data).toEqual(state[resourcesType].data);
+    expect(updatedState.resources[resourcesType].data).toEqual(state.resources[resourcesType].data);
   });
 });
 
@@ -176,7 +178,7 @@ describe('[State Mutation] Update or Reverse relationships', () => {
     const updatedEntities = makeUpdateReverseRelationship(
       resource,
       resource.relationships.transaction
-    )(state.transactions.data);
+    )(state.resources.transactions.data);
 
     expect(updatedEntities[0].relationships.task.data)
       .toEqual({ id: resource.id, type: resource.type });
@@ -213,10 +215,10 @@ describe('[State Mutation] Update or Reverse relationships', () => {
     const updatedEnteties = makeUpdateReverseRelationship(
       localresource,
       localresource.relationships.transaction
-    )(state.transactions.data);
+    )(state.resources.transactions.data);
 
     expect(updatedEnteties[2].relationships.task.data)
-      .toBe(state.transactions.data[2].relationships.task.data);
+      .toBe(state.resources.transactions.data[2].relationships.task.data);
   });
 
   it('Should nullify a resource relationship', () => {
@@ -224,7 +226,7 @@ describe('[State Mutation] Update or Reverse relationships', () => {
       resource,
       resource.relationships.transaction,
       null
-    )(state.transactions.data);
+    )(state.resources.transactions.data);
 
     expect(updatedEnteties[0].relationships.task.data).toEqual(null);
   });
@@ -233,44 +235,44 @@ describe('[State Mutation] Update or Reverse relationships', () => {
     const apiUpdated = createAction('API_UPDATED');
     const updatedState = reducer(apiState, apiUpdated(patchedResource));
 
-    expect(updatedState.zenAccounts.data[0].relationships.expenseItems.data.length).toEqual(1);
+    expect(updatedState.resources.zenAccounts.data[0].relationships.expenseItems.data.length).toEqual(1);
   });
 });
 
 
 describe('[State Mutation]: Set is invalidating for existing resource', () => {
   it('Should set a ivalidating type for resource to IS_UPDATING', () => {
-    const { id, type } = state.users.data[0];
+    const { id, type } = state.resources.users.data[0];
     const updatedState = setIsInvalidatingForExistingResource(
       state,
       { type, id },
       IS_UPDATING
     ).value();
-    expect(updatedState.users.data[0].isInvalidating).toEqual(IS_UPDATING);
+    expect(updatedState.resources.users.data[0].isInvalidating).toEqual(IS_UPDATING);
   });
 });
 
 describe('[State Mutation]: Create new reference when Object is mutated', () => {
   it('Should keep proper refrences when setting isInvalidating', () => {
-    const { id, type } = state.users.data[0];
+    const { id, type } = state.resources.users.data[0];
     const updatedState = setIsInvalidatingForExistingResource(
       state,
       { type, id },
       IS_UPDATING
     ).value();
 
-    expect(updatedState.users.data[0]).not.toBe(state.users.data[0]);
-    expect(updatedState.users.data[1]).toBe(state.users.data[1]);
+    expect(updatedState.resources.users.data[0]).not.toBe(state.resources.users.data[0]);
+    expect(updatedState.resources.users.data[1]).toBe(state.resources.users.data[1]);
   });
 
   it('Should keep proper refrences when updating reverse relationships', () => {
     const updatedResources = makeUpdateReverseRelationship(
       resource,
       resource.relationships.transaction
-    )(state.transactions.data);
+    )(state.resources.transactions.data);
 
-    expect(updatedResources[0]).not.toBe(state.transactions.data[0]);
-    expect(updatedResources[1]).toBe(state.transactions.data[1]);
+    expect(updatedResources[0]).not.toBe(state.resources.transactions.data[0]);
+    expect(updatedResources[1]).toBe(state.resources.transactions.data[1]);
   });
 
   it('Should only replace updated resource', () => {
@@ -287,8 +289,8 @@ describe('[State Mutation]: Create new reference when Object is mutated', () => 
       }
     });
 
-    expect(updatedState.users.data[0]).not.toBe(state.users.data[0]);
-    expect(updatedState.users.data[1]).toBe(state.users.data[1]);
+    expect(updatedState.resources.users.data[0]).not.toBe(state.resources.users.data[0]);
+    expect(updatedState.resources.users.data[1]).toBe(state.resources.users.data[1]);
   });
 
   it('Should keep object reference on update or insert when resource hasn\'t changed', () => {
@@ -305,6 +307,6 @@ describe('[State Mutation]: Create new reference when Object is mutated', () => 
       }
     });
 
-    expect(updatedState.users.data[0]).toBe(state.users.data[0]);
+    expect(updatedState.resources.users.data[0]).toBe(state.resources.users.data[0]);
   });
 });
