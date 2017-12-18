@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "axios": "^0.17.1",
-    "deep-equal": "^1.0.1",
+    "fast-deep-equal": "^1.0.0",
     "keykey": "^2.1.1",
     "object-path-immutable": "^0.5.2",
     "pluralize": "^7.0.0",

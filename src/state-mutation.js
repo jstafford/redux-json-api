@@ -1,4 +1,4 @@
-import equal from 'deep-equal';
+import equal from 'fast-deep-equal';
 import imm from 'object-path-immutable';
 import pluralize from 'pluralize';
 import { hasOwnProperties } from './utils';
