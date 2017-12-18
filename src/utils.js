@@ -38,18 +38,20 @@ export const apiRequest = (url, options = {}) => {
 };
 
 export const hasOwnProperties = (obj, propertyTree) => {
-  if ((obj instanceof Object) === false) {
-    return false;
-  }
-  const property = propertyTree[0];
-  const hasProperty = Object.prototype.hasOwnProperty.call(obj, property);
-  if (hasProperty) {
-    if (propertyTree.length === 1) {
-      return hasProperty;
+  let curObj = obj;
+  const propLen = propertyTree.length;
+  for (let i = 0; i < propLen; i += 1) {
+    if (!(curObj instanceof Object)) {
+      return false;
     }
-    return hasOwnProperties(obj[property], propertyTree.slice(1));
+    const property = propertyTree[i];
+    const hasProperty = Object.prototype.hasOwnProperty.call(curObj, property);
+    if (!hasProperty) {
+      return false;
+    }
+    curObj = curObj[property];
   }
-  return false;
+  return true;
 };
 
 export const getPaginationUrl = (response, direction, path) => {
