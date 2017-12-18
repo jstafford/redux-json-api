@@ -202,7 +202,7 @@ export const reducer = handleActions({
   },
 
   [API_WILL_CREATE]: (state) => {
-    return imm(state).set(['isCreating'], state.isCreating + 1).value();
+    return imm(state).set(['status', 'isCreating'], state.status.isCreating + 1).value();
   },
 
   [API_CREATED]: (state, { payload: resources }) => {
@@ -214,16 +214,16 @@ export const reducer = handleActions({
     );
 
     return imm(newState)
-      .set('isCreating', state.isCreating - 1)
+      .set(['status', 'isCreating'], state.status.isCreating - 1)
       .value();
   },
 
   [API_CREATE_FAILED]: (state) => {
-    return imm(state).set(['isCreating'], state.isCreating - 1).value();
+    return imm(state).set(['status', 'isCreating'], state.status.isCreating - 1).value();
   },
 
   [API_WILL_READ]: (state) => {
-    return imm(state).set(['isReading'], state.isReading + 1).value();
+    return imm(state).set(['status', 'isReading'], state.status.isReading + 1).value();
   },
 
   [API_READ]: (state, { payload }) => {
@@ -236,12 +236,12 @@ export const reducer = handleActions({
     const newState = updateOrInsertResourcesIntoState(state, resources);
 
     return imm(newState)
-      .set('isReading', state.isReading - 1)
+      .set(['status', 'isReading'], state.status.isReading - 1)
       .value();
   },
 
   [API_READ_FAILED]: (state) => {
-    return imm(state).set(['isReading'], state.isReading - 1).value();
+    return imm(state).set(['status', 'isReading'], state.status.isReading - 1).value();
   },
 
   [API_WILL_UPDATE]: (state, { payload: resource }) => {
@@ -250,7 +250,7 @@ export const reducer = handleActions({
     const newState = ensureResourceTypeInState(state, type);
 
     return setIsInvalidatingForExistingResource(newState, { type, id }, IS_UPDATING)
-      .set('isUpdating', state.isUpdating + 1)
+      .set(['status', 'isUpdating'], state.status.isUpdating + 1)
       .value();
   },
 
@@ -263,7 +263,7 @@ export const reducer = handleActions({
     );
 
     return imm(newState)
-      .set('isUpdating', state.isUpdating - 1)
+      .set(['status', 'isUpdating'], state.status.isUpdating - 1)
       .value();
   },
 
@@ -271,7 +271,7 @@ export const reducer = handleActions({
     const { type, id } = resource;
 
     return setIsInvalidatingForExistingResource(state, { type, id }, IS_UPDATING)
-      .set('isUpdating', state.isUpdating - 1)
+      .set(['status', 'isUpdating'], state.status.isUpdating - 1)
       .value();
   },
 
@@ -279,13 +279,13 @@ export const reducer = handleActions({
     const { type, id } = resource;
 
     return setIsInvalidatingForExistingResource(state, { type, id }, IS_DELETING)
-      .set('isDeleting', state.isDeleting + 1)
+      .set(['status', 'isDeleting'], state.status.isDeleting + 1)
       .value();
   },
 
   [API_DELETED]: (state, { payload: resource }) => {
     return removeResourceFromState(state, resource)
-      .set('isDeleting', state.isDeleting - 1)
+      .set(['status', 'isDeleting'], state.status.isDeleting - 1)
       .value();
   },
 
@@ -293,15 +293,17 @@ export const reducer = handleActions({
     const { type, id } = resource;
 
     return setIsInvalidatingForExistingResource(state, { type, id }, IS_DELETING)
-      .set('isDeleting', state.isDeleting - 1)
+      .set(['status', 'isDeleting'], state.status.isDeleting - 1)
       .value();
   }
 
 }, {
-  isCreating: 0,
-  isReading: 0,
-  isUpdating: 0,
-  isDeleting: 0,
+  status: {
+    isCreating: 0,
+    isReading: 0,
+    isUpdating: 0,
+    isDeleting: 0
+  },
   endpoint: {
     axiosConfig: {}
   },

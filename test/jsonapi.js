@@ -78,10 +78,12 @@ const state = {
       ]
     }
   },
-  isCreating: 0,
-  isReading: 0,
-  isUpdating: 0,
-  isDeleting: 0
+  status: {
+    isCreating: 0,
+    isReading: 0,
+    isUpdating: 0,
+    isDeleting: 0
+  }
 };
 
 const stateWithoutUsersResource = {
@@ -116,10 +118,12 @@ const stateWithoutUsersResource = {
       ]
     }
   },
-  isCreating: 0,
-  isReading: 0,
-  isUpdating: 0,
-  isDeleting: 0
+  status: {
+    isCreating: 0,
+    isReading: 0,
+    isUpdating: 0,
+    isDeleting: 0
+  }
 };
 
 const taskWithoutRelationship = {
@@ -421,7 +425,7 @@ describe('Creation of new resources', () => {
 
     expect(taskRelationship.type).toEqual(taskWithTransaction.data.type);
     expect(taskRelationship.id).toEqual(taskWithTransaction.data.id);
-    expect(updatedState.isCreating).toEqual(state.isCreating - 1);
+    expect(updatedState.status.isCreating).toEqual(state.status.isCreating - 1);
   });
 
   it('should handle multiple resources', () => {
@@ -582,19 +586,19 @@ describe('Invalidating flag', () => {
   });
 });
 
-describe('progress flags', () => {
-  it('should update isUpdating flag properly when update fails', () => {
+describe('status flags', () => {
+  it('should update isUpdating status flag properly when update fails', () => {
     let updatedState = reducer(state, apiWillUpdate(state.resources.users.data[0]));
-    expect(updatedState.isUpdating).toEqual(1);
+    expect(updatedState.status.isUpdating).toEqual(1);
     updatedState = reducer(updatedState, apiUpdateFailed({ resource: state.resources.users.data[0] }));
-    expect(updatedState.isUpdating).toEqual(0);
+    expect(updatedState.status.isUpdating).toEqual(0);
   });
 
-  it('should update isDeleting flag properly when delete fails', () => {
+  it('should update isDeleting status flag properly when delete fails', () => {
     let updatedState = reducer(state, apiWillDelete(state.resources.users.data[0]));
-    expect(updatedState.isDeleting).toEqual(1);
+    expect(updatedState.status.isDeleting).toEqual(1);
     updatedState = reducer(updatedState, apiDeleteFailed({ resource: state.resources.users.data[0] }));
-    expect(updatedState.isDeleting).toEqual(0);
+    expect(updatedState.status.isDeleting).toEqual(0);
   });
 });
 

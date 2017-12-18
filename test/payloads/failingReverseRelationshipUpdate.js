@@ -1,6 +1,4 @@
 export const apiState = {
-  isReading: 0,
-  isCreating: 0,
   resources: {
     worksheets: {
       data: [{
@@ -51,8 +49,12 @@ export const apiState = {
       }]
     }
   },
-  isUpdating: 0,
-  isDeleting: 0,
+  status: {
+    isCreating: 0,
+    isReading: 0,
+    isUpdating: 0,
+    isDeleting: 0
+  },
   endpoint: { host: 'http: //localhost:3000', path: '/api/v1', headers: { 'Content-Type': 'application/vnd.api+json', Accept: 'application/vnd.api+json' } }
 };
 

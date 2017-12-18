@@ -143,10 +143,12 @@ const state = {
       ]
     },
   },
-  isCreating: 0,
-  isReading: 0,
-  isUpdating: 0,
-  isDeleting: 0
+  status: {
+    isCreating: 0,
+    isReading: 0,
+    isUpdating: 0,
+    isDeleting: 0
+  }
 };
 
 describe('[State mutation] Insertion of resources', () => {
