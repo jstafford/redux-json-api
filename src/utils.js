@@ -9,8 +9,6 @@ export const jsonContentTypes = [
 
 const hasValidContentType = response => jsonContentTypes.some(contentType => response.headers['content-type'].indexOf(contentType) > -1);
 
-export const noop = () => {};
-
 export const apiRequest = (url, options = {}) => {
   const allOptions = imm(options)
     .set('url', url)

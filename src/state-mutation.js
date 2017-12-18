@@ -64,7 +64,7 @@ export const makeUpdateReverseRelationship = (
 
       if (foreignResourceRel[relIdx]) {
         const deletePath = [idx, 'relationships', singular, 'data', relIdx];
-        return imm(foreignResources).del(deletePath).value();
+        return immutableForeingResources.del(deletePath).value();
       }
 
       return foreignResources;
