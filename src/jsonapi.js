@@ -2,7 +2,6 @@ import { createAction, handleActions } from 'redux-actions';
 import imm from 'object-path-immutable';
 
 import {
-  addLinksToState,
   removeResourceFromState,
   updateOrInsertResourcesIntoState,
   setIsInvalidatingForExistingResource,
@@ -82,11 +81,7 @@ class ApiResponse {
   /* eslint-enable */
 }
 
-export const readEndpoint = (endpoint, {
-  options = {
-    indexLinks: undefined,
-  }
-} = {}) => {
+export const readEndpoint = (endpoint) => {
   return (dispatch, getState) => {
     dispatch(apiWillRead(endpoint));
 
@@ -95,7 +90,7 @@ export const readEndpoint = (endpoint, {
     return new Promise((resolve, reject) => {
       apiRequest(endpoint, axiosConfig)
         .then((json) => {
-          dispatch(apiRead({ endpoint, options, ...json }));
+          dispatch(apiRead({ endpoint, ...json }));
 
           const nextUrl = getPaginationUrl(json, 'next', axiosConfig.baseURL);
           const prevUrl = getPaginationUrl(json, 'prev', axiosConfig.baseURL);
@@ -239,9 +234,8 @@ export const reducer = handleActions({
     ).concat(payload.included || []);
 
     const newState = updateOrInsertResourcesIntoState(state, resources);
-    const finalState = addLinksToState(newState, payload.links, payload.options);
 
-    return imm(finalState)
+    return imm(newState)
       .set('isReading', state.isReading - 1)
       .value();
   },
