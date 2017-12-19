@@ -51,7 +51,6 @@
     "fast-deep-equal": "^1.0.0",
     "keykey": "^2.1.1",
     "object-path-immutable": "^0.5.2",
-    "pluralize": "^7.0.0",
     "redux-actions": "^2.2.1"
   }
 }

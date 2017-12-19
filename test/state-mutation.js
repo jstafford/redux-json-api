@@ -19,32 +19,6 @@ import {
 
 import topics from './payloads/topics.json';
 
-const resource = {
-  type: 'tasks',
-  id: '43',
-  attributes: {
-    name: 'ABC',
-    createdAt: '2016-02-19T11:52:43+0000',
-    updatedAt: '2016-02-19T11:52:43+0000'
-  },
-  relationships: {
-    taskList: {
-      data: {
-        type: 'taskLists',
-        id: '1'
-      }
-    },
-    transaction: {
-      data: {
-        type: 'transactions',
-        id: '35'
-      }
-    }
-  },
-  links: {
-    self: 'http://localhost/tasks/43'
-  }
-};
 const state = {
   endpoint: {
     host: null,
