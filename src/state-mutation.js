@@ -3,13 +3,9 @@ import imm from 'object-path-immutable';
 import { hasOwnProperties } from './utils';
 
 const stateContainsResource = (state, resource) => {
-  const updatePath = ['resources', resource.type, 'data'];
+  const updatePath = ['resources', resource.type, resource.id];
 
-  if (hasOwnProperties(state, updatePath)) {
-    return state.resources[resource.type].data.findIndex(item => item.id === resource.id) > -1;
-  }
-
-  return false;
+  return hasOwnProperties(state, updatePath);
 };
 
 const updateOrInsertResource = (state, resource) => {
@@ -18,33 +14,31 @@ const updateOrInsertResource = (state, resource) => {
   }
 
   let newState = state;
-  const updatePath = ['resources', resource.type, 'data'];
+  const updatePath = ['resources', resource.type, resource.id];
 
   if (stateContainsResource(state, resource)) {
-    const resources = state.resources[resource.type].data;
-    const idx = resources.findIndex(item => item.id === resource.id);
+    const curResource = state.resources[resource.type][resource.id];
 
     const relationships = {};
     Object.keys(resource.relationships).forEach((relationship) => {
-      if (!resource.relationships[relationship].data) {
-        relationships[relationship] = resources[idx].relationships[relationship];
+      if (!resource.relationships[relationship].data && hasOwnProperties(curResource, ['relationships', relationship])) {
+        relationships[relationship] = curResource.relationships[relationship];
       }
     });
-    Object.assign(resource.relationships, relationships);
+    const immResource = imm(resource).set(['relationships'], relationships).value();
 
-    if (!equal(resources[idx], resource)) {
-      newState = imm.set(newState, updatePath.concat(idx), resource);
+    if (!equal(curResource, immResource)) {
+      newState = imm.set(newState, updatePath, resource);
     }
   } else {
-    newState = imm.push(newState, updatePath, resource);
+    newState = imm.set(newState, updatePath, resource);
   }
 
   return newState;
 };
 
 export const removeResourceFromState = (state, resource) => {
-  const index = state.resources[resource.type].data.findIndex(e => e.id === resource.id);
-  const path = ['resources', resource.type, 'data', index];
+  const path = ['resources', resource.type, resource.id];
 
   return imm(state).del(path);
 };
@@ -54,8 +48,7 @@ export const updateOrInsertResourcesIntoState = (state, resources) => {
 };
 
 export const setIsInvalidatingForExistingResource = (state, { type, id }, value = null) => {
-  const idx = state.resources[type].data.findIndex(e => e.id === id && e.type === type);
-  const updatePath = ['resources', type, 'data', idx, 'isInvalidating'];
+  const updatePath = ['resources', type, id, 'isInvalidating'];
 
   return value === null
     ? imm(state).del(updatePath)
@@ -63,8 +56,8 @@ export const setIsInvalidatingForExistingResource = (state, { type, id }, value 
 };
 
 export const ensureResourceTypeInState = (state, type) => {
-  const path = ['resources', type, 'data'];
-  return hasOwnProperties(state, ['resources', type])
+  const path = ['resources', type];
+  return hasOwnProperties(state, path)
     ? state
-    : imm(state).set(path, []).value();
+    : imm(state).set(path, {}).value();
 };

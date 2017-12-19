@@ -270,7 +270,7 @@ export const reducer = handleActions({
   [API_UPDATE_FAILED]: (state, { payload: { resource } }) => {
     const { type, id } = resource;
 
-    return setIsInvalidatingForExistingResource(state, { type, id }, IS_UPDATING)
+    return setIsInvalidatingForExistingResource(state, { type, id }, null)
       .set(['status', 'isUpdating'], state.status.isUpdating - 1)
       .value();
   },
@@ -292,7 +292,7 @@ export const reducer = handleActions({
   [API_DELETE_FAILED]: (state, { payload: { resource } }) => {
     const { type, id } = resource;
 
-    return setIsInvalidatingForExistingResource(state, { type, id }, IS_DELETING)
+    return setIsInvalidatingForExistingResource(state, { type, id }, null)
       .set(['status', 'isDeleting'], state.status.isDeleting - 1)
       .value();
   }

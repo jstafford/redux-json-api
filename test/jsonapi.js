@@ -29,53 +29,49 @@ const state = {
   },
   resources: {
     users: {
-      data: [
-        {
-          type: 'users',
-          id: '1',
-          attributes: {
-            name: 'John Doe'
-          },
-          relationships: {
-            companies: {
-              data: null
-            }
-          }
+      1: {
+        type: 'users',
+        id: '1',
+        attributes: {
+          name: 'John Doe'
         },
-        {
-          type: 'users',
-          id: '2',
-          attributes: {
-            name: 'Emily Jane'
-          },
-          relationships: {
-            companies: {
-              data: null
-            }
+        relationships: {
+          companies: {
+            data: null
           }
         }
-      ]
+      },
+      2: {
+        type: 'users',
+        id: '2',
+        attributes: {
+          name: 'Emily Jane'
+        },
+        relationships: {
+          companies: {
+            data: null
+          }
+        }
+      }
     },
     transactions: {
-      data: [
-        {
-          type: 'transactions',
-          id: '34',
-          attributes: {
-            description: 'ABC',
-            createdAt: '2016-02-12T13:34:01+0000',
-            updatedAt: '2016-02-19T11:52:43+0000',
-          },
-          relationships: {
-            task: {
-              data: null
-            }
-          },
-          links: {
-            self: 'http://localhost/transactions/34'
+      34: {
+        type: 'transactions',
+        id: '34',
+        attributes: {
+          description: 'ABC',
+          createdAt: '2016-02-12T13:34:01+0000',
+          updatedAt: '2016-02-19T11:52:43+0000',
+        },
+        relationships: {
+          task: {
+            data: null
           }
+        },
+        links: {
+          self: 'http://localhost/transactions/34'
         }
-      ]
+      }
     }
   },
   status: {
@@ -97,25 +93,23 @@ const stateWithoutUsersResource = {
   },
   resources: {
     transactions: {
-      data: [
-        {
-          type: 'transactions',
-          id: '34',
-          attributes: {
-            description: 'ABC',
-            createdAt: '2016-02-12T13:34:01+0000',
-            updatedAt: '2016-02-19T11:52:43+0000',
-          },
-          relationships: {
-            task: {
-              data: null
-            }
-          },
-          links: {
-            self: 'http://localhost/transactions/34'
+      34: {
+        type: 'transactions',
+        id: '34',
+        attributes: {
+          description: 'ABC',
+          createdAt: '2016-02-12T13:34:01+0000',
+          updatedAt: '2016-02-19T11:52:43+0000',
+        },
+        relationships: {
+          task: {
+            data: null
           }
+        },
+        links: {
+          self: 'http://localhost/transactions/34'
         }
-      ]
+      }
     }
   },
   status: {
@@ -419,12 +413,12 @@ describe('Reading resources', () => {
   it('should append read resources to state', () => {
     const updatedState = reducer(state, apiRead(readResponse));
     expect(updatedState.resources.tasks).toBeInstanceOf(Object);
-    expect(updatedState.resources.tasks.data.length).toEqual(1);
+    expect(Object.keys(updatedState.resources.tasks).length).toEqual(1);
   });
 
   it('should append included resources in state', () => {
     const updatedState = reducer(state, apiRead(readResponseWithIncluded));
-    expect(updatedState.resources.transactions.data.length).toEqual(state.resources.transactions.data.length + 1);
+    expect(Object.keys(updatedState.resources.transactions).length).toEqual(Object.keys(state.resources.transactions).length + 1);
   });
 
   it('should handle response where data is an object', () => {
@@ -444,13 +438,11 @@ describe('Reading resources', () => {
     payloadWithNonMatchingReverseRelationships.included
       .filter(resource => resource.type === 'reports')
       .forEach((payloadReport) => {
-        const stateReport = updatedState.resources.reports.data.find(r => payloadReport.id === r.id);
+        const stateReport = updatedState.resources.reports[payloadReport.id];
         expect(stateReport.relationships.file.data.id).toEqual(payloadReport.relationships.file.data.id);
       });
   });
 });
-
-const zip = rows => rows[0].map((_, c) => rows.map(row => row[c]));
 
 describe('Updating resources', () => {
   it('should update a resource', () => {
@@ -468,43 +460,43 @@ describe('Updating resources', () => {
         }
       }]
     }));
-    expect(updatedState.resources.users.data[1].attributes.name).toEqual('Jane Doe');
+    expect(updatedState.resources.users['2'].attributes.name).toEqual('Jane Doe');
   });
 
   it('should persist in state and preserve order', () => {
+    const userId = updatedUser.data.id;
     const updatedState = reducer(state, apiUpdated(updatedUser));
-    expect(state.resources.users.data[0].attributes.name).not.toEqual(updatedUser.data.attributes.name);
-    expect(updatedState.resources.users.data[0].attributes.name).toEqual(updatedUser.data.attributes.name);
-    zip([updatedState.resources.users.data, state.resources.users.data]).forEach((a, b) => expect(a.id).toEqual(b.id));
+    expect(state.resources.users[userId].attributes.name).not.toEqual(updatedUser.data.attributes.name);
+    expect(updatedState.resources.users[userId].attributes.name).toEqual(updatedUser.data.attributes.name);
   });
 
   it('should be able to update a resource before type is in state', () => {
-    const userToUpdate = state.resources.users.data[0];
+    const userToUpdate = state.resources.users[1];
     const stateWithResourceType = reducer(stateWithoutUsersResource, apiWillUpdate(userToUpdate));
     const updatedState = reducer(stateWithResourceType, apiUpdated(updatedUser));
-    expect(updatedState.resources.users.data[0]).toEqual(updatedUser.data);
+    expect(updatedState.resources.users[1]).toEqual(updatedUser.data);
   });
 });
 
 describe('Delete resources', () => {
   it('should remove resource from state', () => {
     const updatedState = reducer(state, apiDeleted(transactionToDelete));
-    expect(updatedState.resources.transactions.data.length).toEqual(0);
+    expect(Object.keys(updatedState.resources.transactions).length).toEqual(0);
   });
 
   describe('when one-to-many relationship', () => {
     it('should update reverse relationship for transaction', () => {
       // Add task with transactions to state
       const stateWithTask = reducer(state, apiCreated({ data: taskWithTransactions }));
-      expect(stateWithTask.resources.tasks).toEqual({ data: [taskWithTransactions] });
+      expect(stateWithTask.resources.tasks).toEqual({ [taskWithTransactions.id]: taskWithTransactions });
 
       // Update relation between transaction and task
       const stateWithTaskWithTransaction = reducer(stateWithTask, apiUpdated({ data: transactionWithTask }));
 
-      expect(stateWithTaskWithTransaction.resources.transactions.data[0].relationships.task.data.type).toEqual(taskWithTransactions.type);
+      expect(stateWithTaskWithTransaction.resources.transactions[transactionWithTask.id].relationships.task.data.type).toEqual(taskWithTransactions.type);
 
       const stateWithoutTask = reducer(stateWithTask, apiDeleted(taskWithTransactions));
-      const { data: relationship } = stateWithoutTask.resources.transactions.data[0].relationships.task;
+      const { data: relationship } = stateWithoutTask.resources.transactions[transactionWithTask.id].relationships.task;
       expect(relationship).toEqual(null);
     });
   });
@@ -525,36 +517,52 @@ describe('Endpoint values', () => {
 
 describe('Invalidating flag', () => {
   it('should set before delete', () => {
-    const updatedState = reducer(state, apiWillDelete(state.resources.users.data[0]));
-    expect(updatedState.resources.users.data[0].isInvalidating).toEqual(IS_DELETING);
+    const updatedState = reducer(state, apiWillDelete(state.resources.users[1]));
+    expect(updatedState.resources.users[1].isInvalidating).toEqual(IS_DELETING);
   });
 
   it('should set before update', () => {
-    const updatedState = reducer(state, apiWillUpdate(state.resources.users.data[0]));
-    expect(updatedState.resources.users.data[0].isInvalidating).toEqual(IS_UPDATING);
+    const updatedState = reducer(state, apiWillUpdate(state.resources.users[1]));
+    expect(updatedState.resources.users[1].isInvalidating).toEqual(IS_UPDATING);
   });
 
   it('should be removed after update', () => {
     const updatedState = reducer(
-      reducer(state, apiWillUpdate(state.resources.users.data[0])),
-      apiUpdated(state.resources.users)
+      reducer(state, apiWillUpdate(state.resources.users[1])),
+      apiUpdated({ data: state.resources.users[1] })
     );
-    expect(updatedState.resources.users.data[0].isInvalidating).toBeFalsy();
+    expect(updatedState.resources.users[1].isInvalidating).toBeFalsy();
+  });
+
+  it('should be removed after update failure', () => {
+    const updatedState = reducer(
+      reducer(state, apiWillUpdate(state.resources.users[1])),
+      apiUpdateFailed({ resource: state.resources.users[1] })
+    );
+    expect(updatedState.resources.users[1].isInvalidating).toBeFalsy();
+  });
+
+  it('should be removed after delete failure', () => {
+    const updatedState = reducer(
+      reducer(state, apiWillDelete(state.resources.users[1])),
+      apiDeleteFailed({ resource: state.resources.users[1] })
+    );
+    expect(updatedState.resources.users[1].isInvalidating).toBeFalsy();
   });
 });
 
 describe('status flags', () => {
   it('should update isUpdating status flag properly when update fails', () => {
-    let updatedState = reducer(state, apiWillUpdate(state.resources.users.data[0]));
+    let updatedState = reducer(state, apiWillUpdate(state.resources.users[1]));
     expect(updatedState.status.isUpdating).toEqual(1);
-    updatedState = reducer(updatedState, apiUpdateFailed({ resource: state.resources.users.data[0] }));
+    updatedState = reducer(updatedState, apiUpdateFailed({ resource: state.resources.users[1] }));
     expect(updatedState.status.isUpdating).toEqual(0);
   });
 
   it('should update isDeleting status flag properly when delete fails', () => {
-    let updatedState = reducer(state, apiWillDelete(state.resources.users.data[0]));
+    let updatedState = reducer(state, apiWillDelete(state.resources.users[1]));
     expect(updatedState.status.isDeleting).toEqual(1);
-    updatedState = reducer(updatedState, apiDeleteFailed({ resource: state.resources.users.data[0] }));
+    updatedState = reducer(updatedState, apiDeleteFailed({ resource: state.resources.users[1] }));
     expect(updatedState.status.isDeleting).toEqual(0);
   });
 });
@@ -619,12 +627,12 @@ describe('Relationships without data key should not be reset', () => {
   it('should append read resources to state', () => {
     const updatedState = reducer(state, apiRead(request1));
     expect(updatedState.resources.articles).toBeInstanceOf(Object);
-    expect(updatedState.resources.articles.data.length).toEqual(1);
-    expect(updatedState.resources.articles.data[0].relationships.author).toEqual({ data: { id: '42', type: 'people' } });
+    expect(Object.keys(updatedState.resources.articles).length).toEqual(1);
+    expect(updatedState.resources.articles[1].relationships.author).toEqual({ data: { id: '42', type: 'people' } });
 
     const updatedState2 = reducer(updatedState, apiRead(request2));
     expect(updatedState2.resources.articles).toBeInstanceOf(Object);
-    expect(updatedState2.resources.articles.data.length).toEqual(1);
-    expect(updatedState2.resources.articles.data[0].relationships.author).toEqual({ data: { id: '42', type: 'people' } });
+    expect(Object.keys(updatedState2.resources.articles).length).toEqual(1);
+    expect(updatedState2.resources.articles[1].relationships.author).toEqual({ data: { id: '42', type: 'people' } });
   });
 });
