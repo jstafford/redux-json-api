@@ -119,12 +119,20 @@ const updateOrInsertResource = (state, resource) => {
     newState = imm.push(newState, updatePath, resource);
   }
 
-  const rels = resource.relationships;
+  return newState;
+};
 
-  if (!rels) {
-    return newState;
+const updateRelationships = (state, resource) => {
+  if (typeof resource !== 'object') {
+    return state;
   }
 
+  const rels = resource.relationships;
+  if (!rels) {
+    return state;
+  }
+
+  let newState = state;
   Object.keys(rels).forEach((relKey) => {
     if (!hasOwnProperties(rels[relKey], ['data', 'type'])) {
       return;
@@ -177,9 +185,11 @@ export const removeResourceFromState = (state, resource) => {
   }, imm(state).del(path));
 };
 
-export const updateOrInsertResourcesIntoState = (state, resources) => (
-  resources.reduce(updateOrInsertResource, state)
-);
+export const updateOrInsertResourcesIntoState = (state, resources) => {
+  let newState = resources.reduce(updateOrInsertResource, state);
+  newState = resources.reduce(updateRelationships, newState);
+  return newState;
+};
 
 export const setIsInvalidatingForExistingResource = (state, { type, id }, value = null) => {
   const idx = state.resources[type].data.findIndex(e => e.id === id && e.type === type);
