@@ -2,7 +2,7 @@ import equal from 'fast-deep-equal';
 import imm from 'object-path-immutable';
 import { hasOwnProperties } from './utils';
 
-const stateContainsResource = (state, resource) => {
+export const stateContainsResource = (state, resource) => {
   const updatePath = ['resources', resource.type, resource.id];
 
   return hasOwnProperties(state, updatePath);

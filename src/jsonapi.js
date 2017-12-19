@@ -2,6 +2,7 @@ import { createAction, handleActions } from 'redux-actions';
 import imm from 'object-path-immutable';
 
 import {
+  stateContainsResource,
   removeResourceFromState,
   updateOrInsertResourcesIntoState,
   setIsInvalidatingForExistingResource,
@@ -105,6 +106,57 @@ export const readEndpoint = (endpoint) => {
           reject(err);
         });
     });
+  };
+};
+
+/**
+ * The purpose of this function is to ensure that the specific resource, and
+ * optionally the related resources for the relationships listed in the include
+ * param are present in the state, or if not, that the resources are loaded with
+ * as few extra calls as possible.
+ * If the specified resource is not present, the include parameter
+ * will be added to the url when requesting the resource.
+ * If the specified resource is present, any missing related resources
+ * indicated by the include param will be loaded with a filtered search,
+ * using one request per resource type.
+ */
+export const ensureResource = (type, id, include) => {
+  return (dispatch, getState) => {
+    const state = getState().api;
+    if (!stateContainsResource(state, { type, id })) {
+      const url = include ? `${type}/${id}?include=${include}` : `${type}/${id}`;
+      dispatch(readEndpoint(url));
+    } else if (include) {
+      const resourceRels = state.resources[type][id].relationships;
+      const includeRels = include.split(',');
+      const missingResources = {};
+      includeRels.forEach((includedRel) => {
+        const includeList = resourceRels[includedRel].data;
+        if (includeList) {
+          includeList.forEach((item) => {
+            if (!stateContainsResource(state, item)) {
+              if (!missingResources[item.type]) {
+                missingResources[item.type] = [];
+              }
+              missingResources[item.type].push(item.id);
+            }
+          });
+        }
+      });
+      const missingTypes = Object.keys(missingResources);
+      missingTypes.forEach((missingType) => {
+        const missingIds = missingResources[missingType];
+        if (missingIds.length) {
+          let url = `${missingType}/?`;
+          let and = '';
+          missingIds.forEach((missingId) => {
+            url += `${and}filter[id]=${missingId}`;
+            and = '&';
+          });
+          dispatch(readEndpoint(url));
+        }
+      });
+    }
   };
 };
 
