@@ -397,15 +397,6 @@ describe('Hydration of store', () => {
     expect(updatedState.resources.tasks).toBeInstanceOf(Object);
   });
 
-  it('should add reverse relationship when inserting new resource', () => {
-    const updatedState = reducer(state, hydrateStore(taskWithTransaction));
-
-    const { data: taskRelationship } = updatedState.resources.transactions.data[0].relationships.task;
-
-    expect(taskRelationship.type).toEqual(taskWithTransaction.data.type);
-    expect(taskRelationship.id).toEqual(taskWithTransaction.data.id);
-  });
-
   it('should handle multiple resources', () => {
     const updatedState = reducer(state, hydrateStore(multipleResources));
     expect(updatedState.resources.tasks).toBeInstanceOf(Object);
@@ -416,16 +407,6 @@ describe('Creation of new resources', () => {
   it('should automatically organize new resource in new key on state', () => {
     const updatedState = reducer(state, apiCreated(taskWithoutRelationship));
     expect(updatedState.resources.tasks).toBeInstanceOf(Object);
-  });
-
-  it('should add reverse relationship when inserting new resource', () => {
-    const updatedState = reducer(state, apiCreated(taskWithTransaction));
-
-    const { data: taskRelationship } = updatedState.resources.transactions.data[0].relationships.task;
-
-    expect(taskRelationship.type).toEqual(taskWithTransaction.data.type);
-    expect(taskRelationship.id).toEqual(taskWithTransaction.data.id);
-    expect(updatedState.status.isCreating).toEqual(state.status.isCreating - 1);
   });
 
   it('should handle multiple resources', () => {
@@ -454,9 +435,7 @@ describe('Reading resources', () => {
 
   it('should handle response with a one to many relationship', () => {
     const updatedState = reducer(state, apiRead(responseDataWithOneToManyRelationship));
-    expect(updatedState.resources.users).toBeInstanceOf(Object);
     expect(updatedState.resources.companies).toBeInstanceOf(Object);
-    expect(updatedState.resources.users.data[0].relationships.companies.data).toBeInstanceOf(Array);
   });
 
   it('should ignore reverse relationship with no matching resource', () => {
@@ -513,14 +492,6 @@ describe('Delete resources', () => {
     expect(updatedState.resources.transactions.data.length).toEqual(0);
   });
 
-  it('should remove reverse relationship', () => {
-    const stateWithTask = reducer(state, apiCreated(taskWithTransaction));
-    expect(stateWithTask.resources.transactions.data[0].relationships.task.data.type).toEqual(taskWithTransaction.data.type);
-    const stateWithoutTask = reducer(stateWithTask, apiDeleted(taskWithTransaction.data));
-    const { data: relationship } = stateWithoutTask.resources.transactions.data[0].relationships.task;
-    expect(relationship).toEqual(null);
-  });
-
   describe('when one-to-many relationship', () => {
     it('should update reverse relationship for transaction', () => {
       // Add task with transactions to state
@@ -535,20 +506,6 @@ describe('Delete resources', () => {
       const stateWithoutTask = reducer(stateWithTask, apiDeleted(taskWithTransactions));
       const { data: relationship } = stateWithoutTask.resources.transactions.data[0].relationships.task;
       expect(relationship).toEqual(null);
-    });
-
-    it('should update reverse relationship for task', () => {
-      // Add task with transactions to state
-      const stateWithTask = reducer(state, apiCreated({ data: taskWithTransactions }));
-      // Update relation between transaction and task
-      // TODO: check relationshiphs on create resource
-      const stateWithTaskWithTransaction = reducer(stateWithTask, apiUpdated({ data: transactionWithTask }));
-
-      expect(stateWithTaskWithTransaction.resources.transactions.data[0].id).toEqual(taskWithTransactions.relationships.transaction.data[0].id);
-
-      const stateWithoutTransaction = reducer(stateWithTask, apiDeleted(transactionWithTask));
-      const { data: relationship } = stateWithoutTransaction.resources.tasks.data[0].relationships.transaction;
-      expect(relationship).toEqual([]);
     });
   });
 });

@@ -2,7 +2,6 @@ import expect from 'expect';
 import { createAction } from 'redux-actions';
 
 import {
-  makeUpdateReverseRelationship,
   setIsInvalidatingForExistingResource,
   updateOrInsertResourcesIntoState,
   ensureResourceTypeInState
@@ -175,63 +174,6 @@ describe('[State mutation] Insertion of empty resources type', () => {
 });
 
 describe('[State Mutation] Update or Reverse relationships', () => {
-  it('Should update a resource relationship', () => {
-    const updatedEntities = makeUpdateReverseRelationship(
-      resource,
-      resource.relationships.transaction
-    )(state.resources.transactions.data);
-
-    expect(updatedEntities[0].relationships.task.data)
-      .toEqual({ id: resource.id, type: resource.type });
-  });
-
-  it('Should not mutate relationship, if new relationship is not null', () => {
-    const localresource = {
-      type: 'tasks',
-      id: '43',
-      attributes: {
-        name: 'ABC',
-        createdAt: '2016-02-19T11:52:43+0000',
-        updatedAt: '2016-02-19T11:52:43+0000'
-      },
-      relationships: {
-        taskList: {
-          data: {
-            type: 'taskLists',
-            id: '1'
-          }
-        },
-        transaction: {
-          data: {
-            type: 'transactions',
-            id: '37'
-          }
-        }
-      },
-      links: {
-        self: 'http://localhost/tasks/43'
-      }
-    };
-
-    const updatedEnteties = makeUpdateReverseRelationship(
-      localresource,
-      localresource.relationships.transaction
-    )(state.resources.transactions.data);
-
-    expect(updatedEnteties[2].relationships.task.data)
-      .toBe(state.resources.transactions.data[2].relationships.task.data);
-  });
-
-  it('Should nullify a resource relationship', () => {
-    const updatedEnteties = makeUpdateReverseRelationship(
-      resource,
-      resource.relationships.transaction,
-      null
-    )(state.resources.transactions.data);
-
-    expect(updatedEnteties[0].relationships.task.data).toEqual(null);
-  });
-
   it('should not duplicate existing reverse relationships', () => {
     const apiUpdated = createAction('API_UPDATED');
     const updatedState = reducer(apiState, apiUpdated(patchedResource));
@@ -264,16 +206,6 @@ describe('[State Mutation]: Create new reference when Object is mutated', () => 
 
     expect(updatedState.resources.users.data[0]).not.toBe(state.resources.users.data[0]);
     expect(updatedState.resources.users.data[1]).toBe(state.resources.users.data[1]);
-  });
-
-  it('Should keep proper refrences when updating reverse relationships', () => {
-    const updatedResources = makeUpdateReverseRelationship(
-      resource,
-      resource.relationships.transaction
-    )(state.resources.transactions.data);
-
-    expect(updatedResources[0]).not.toBe(state.resources.transactions.data[0]);
-    expect(updatedResources[1]).toBe(state.resources.transactions.data[1]);
   });
 
   it('Should only replace updated resource', () => {
