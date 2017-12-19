@@ -218,6 +218,9 @@ const transactionWithTask = {
         type: 'tasks',
         id: '43'
       }
+    },
+    links: {
+      self: 'http://localhost/transactions/34'
     }
   }
 };
@@ -242,7 +245,7 @@ const multipleResources = {
     taskWithTransaction.data,
   ],
   relationships: [
-    taskWithTransaction.relationships
+    taskWithTransaction.data.relationships
   ]
 };
 
