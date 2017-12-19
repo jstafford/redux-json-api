@@ -92,7 +92,7 @@ const stateContainsResource = (state, resource) => {
   return false;
 };
 
-export const updateOrInsertResource = (state, resource) => {
+const updateOrInsertResource = (state, resource) => {
   if (typeof resource !== 'object') {
     return state;
   }

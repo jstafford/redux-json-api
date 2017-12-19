@@ -4,7 +4,6 @@ import { createAction } from 'redux-actions';
 import {
   makeUpdateReverseRelationship,
   setIsInvalidatingForExistingResource,
-  updateOrInsertResource,
   updateOrInsertResourcesIntoState,
   ensureResourceTypeInState
 } from '../src/state-mutation';
@@ -278,7 +277,7 @@ describe('[State Mutation]: Create new reference when Object is mutated', () => 
   });
 
   it('Should only replace updated resource', () => {
-    const updatedState = updateOrInsertResource(state, {
+    const updatedState = updateOrInsertResourcesIntoState(state, [{
       type: 'users',
       id: '1',
       attributes: {
@@ -289,14 +288,14 @@ describe('[State Mutation]: Create new reference when Object is mutated', () => 
           data: null
         }
       }
-    });
+    }]);
 
     expect(updatedState.resources.users.data[0]).not.toBe(state.resources.users.data[0]);
     expect(updatedState.resources.users.data[1]).toBe(state.resources.users.data[1]);
   });
 
   it('Should keep object reference on update or insert when resource hasn\'t changed', () => {
-    const updatedState = updateOrInsertResource(state, {
+    const updatedState = updateOrInsertResourcesIntoState(state, [{
       type: 'users',
       id: '1',
       attributes: {
@@ -307,7 +306,7 @@ describe('[State Mutation]: Create new reference when Object is mutated', () => 
           data: null
         }
       }
-    });
+    }]);
 
     expect(updatedState.resources.users.data[0]).toBe(state.resources.users.data[0]);
   });
