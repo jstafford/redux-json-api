@@ -61,3 +61,37 @@ export const ensureResourceTypeInState = (state, type) => {
     ? state
     : imm(state).set(path, {}).value();
 };
+
+export const updateOrCreateSortInState = (state, payload) => {
+  if (!Array.isArray(payload.data) || payload.data.length < 1) {
+    return state;
+  }
+  const queryOffset = payload.links.self.lastIndexOf('?');
+  const queryStr = payload.links.self.substring(queryOffset + 1);
+  const queryArray = queryStr.split('&');
+  const sortId = queryArray.filter(item => (item.startsWith('sort') || item.startsWith('filter'))).join('&');
+  const { type } = payload.data[0];
+  const offset = hasOwnProperties(payload, ['meta', 'page', 'offset'])
+    ? payload.meta.page.offset
+    : 0;
+  const totalLen = hasOwnProperties(payload, ['meta', 'page', 'total'])
+    ? payload.meta.page.total
+    : offset + payload.data.length;
+  const updatePath = ['sorts', type, sortId];
+  const existingSort = hasOwnProperties(state, updatePath)
+    ? state.sorts[type][sortId]
+    : null;
+  let updatedSort;
+  if (!existingSort) {
+    updatedSort = new Array(totalLen);
+  } else if (existingSort.length < totalLen) {
+    updatedSort = existingSort.concat(new Array(totalLen - existingSort.length));
+  } else {
+    updatedSort = existingSort.slice(0, Math.min(existingSort.length, totalLen));
+  }
+  payload.data.forEach((item, index) => {
+    updatedSort[offset + index] = item.id;
+  });
+
+  return imm(state).set(updatePath, updatedSort).value();
+};

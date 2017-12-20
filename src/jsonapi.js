@@ -6,10 +6,11 @@ import {
   removeResourceFromState,
   updateOrInsertResourcesIntoState,
   setIsInvalidatingForExistingResource,
-  ensureResourceTypeInState
+  ensureResourceTypeInState,
+  updateOrCreateSortInState
 } from './state-mutation';
 
-import { apiRequest, getPaginationUrl } from './utils';
+import { apiRequest, getPaginationUrl, hasOwnProperties } from './utils';
 import {
   API_SET_AXIOS_CONFIG, API_HYDRATE, API_WILL_CREATE, API_CREATED, API_CREATE_FAILED, API_WILL_READ, API_READ, API_READ_FAILED, API_WILL_UPDATE, API_UPDATED, API_UPDATE_FAILED, API_WILL_DELETE, API_DELETED, API_DELETE_FAILED
 } from './constants';
@@ -122,10 +123,12 @@ export const readEndpoint = (endpoint) => {
  */
 export const ensureResource = (type, id, include) => {
   return (dispatch, getState) => {
+    const promises = [];
     const state = getState().api;
     if (!stateContainsResource(state, { type, id })) {
       const url = include ? `${type}/${id}?include=${include}` : `${type}/${id}`;
-      dispatch(readEndpoint(url));
+      const promise = dispatch(readEndpoint(url));
+      promises.push(promise);
     } else if (include) {
       const resourceRels = state.resources[type][id].relationships;
       const includeRels = include.split(',');
@@ -153,10 +156,12 @@ export const ensureResource = (type, id, include) => {
             url += `${and}filter[id]=${missingId}`;
             and = '&';
           });
-          dispatch(readEndpoint(url));
+          const promise = dispatch(readEndpoint(url));
+          promises.push(promise);
         }
       });
     }
+    return Promise.all(promises);
   };
 };
 
@@ -285,7 +290,11 @@ export const reducer = handleActions({
         : [payload.data]
     ).concat(payload.included || []);
 
-    const newState = updateOrInsertResourcesIntoState(state, resources);
+    let newState = updateOrInsertResourcesIntoState(state, resources);
+
+    if (hasOwnProperties(payload, ['links', 'self']) && payload.links.self.indexOf('sort') >= 0) {
+      newState = updateOrCreateSortInState(newState, payload);
+    }
 
     return imm(newState)
       .set(['status', 'isReading'], state.status.isReading - 1)
@@ -359,5 +368,6 @@ export const reducer = handleActions({
   endpoint: {
     axiosConfig: {}
   },
-  resources: {}
+  resources: {},
+  sorts: {}
 });

@@ -4,7 +4,8 @@ import { createAction } from 'redux-actions';
 import {
   setIsInvalidatingForExistingResource,
   updateOrInsertResourcesIntoState,
-  ensureResourceTypeInState
+  ensureResourceTypeInState,
+  updateOrCreateSortInState
 } from '../src/state-mutation';
 
 import {
@@ -117,7 +118,8 @@ const state = {
     isReading: 0,
     isUpdating: 0,
     isDeleting: 0
-  }
+  },
+  sorts: {}
 };
 
 describe('[State mutation] Insertion of resources', () => {
@@ -212,5 +214,57 @@ describe('[State Mutation]: Create new reference when Object is mutated', () => 
     }]);
 
     expect(updatedState.resources.users[1]).toBe(state.resources.users[1]);
+  });
+});
+
+describe('[State Mutation]: Create and update sorts', () => {
+  it('Should save the ordered resource ids', () => {
+    const updatedState = updateOrCreateSortInState(state, {
+      meta: {
+        page: {
+          offset: 0,
+          limit: 50,
+          total: 4
+        }
+      },
+      links: {
+        self: 'http://localhost/jsonapi/transactions/?sort=customer&filter%5Breason%5D=refund'
+      },
+      data: [{
+        type: 'transactions',
+        id: '12',
+        attributes: {
+          customer: 'Alpha Corp',
+          reason: 'refund'
+        }
+      }, {
+        type: 'transactions',
+        id: '34',
+        attributes: {
+          customer: 'Beta Center',
+          reason: 'refund'
+        }
+      }, {
+        type: 'transactions',
+        id: '56',
+        attributes: {
+          customer: 'Delta Farms',
+          reason: 'refund'
+        }
+      }, {
+        type: 'transactions',
+        id: '67',
+        attributes: {
+          customer: 'Epsilon, Inc',
+          reason: 'refund'
+        }
+      }]
+    });
+
+    expect(updatedState.sorts.transactions).toBeInstanceOf(Object);
+    expect(updatedState.sorts.transactions['sort=customer&filter%5Breason%5D=refund']).toBeInstanceOf(Array);
+    expect(updatedState.sorts.transactions['sort=customer&filter%5Breason%5D=refund']).toEqual([
+      '12', '34', '56', '67'
+    ]);
   });
 });

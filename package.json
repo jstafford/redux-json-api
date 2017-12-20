@@ -1,6 +1,6 @@
 {
-  "name": "redux-json-api",
-  "version": "3.0",
+  "name": "jsonapi-client-redux",
+  "version": "1.0",
   "description": "A bunch of Redux actions, action creators and reducers to integrate with a JSON API",
   "main": "lib/jsonapi.js",
   "scripts": {
@@ -10,25 +10,24 @@
     "lint": "eslint . ./",
     "prepublish": "npm run lint && npm run build"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/dixieio/redux-json-api.git"
-  },
+  "repository": "https://github.com/jstafford/redux-json-api",
   "keywords": [
     "redux",
     "json",
     "api",
     "jsonapi"
   ],
-  "author": "Ronni Egeriis Persson <ronni@dixie.io>",
+  "author": "Jason Stafford <jason.stafford@scrycollective.com>",
+  "contributors": [
+    "Ronni Egeriis Persson <ronni@egeriis.me>",
+    "Lars Krieger <lars.krieger@gmail.com>",
+    "Tom Harvey <tom@alush.co.uk>"
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/dixieio/redux-json-api/issues"
+    "url": "https://github.com/jstafford/redux-json-api/issues"
   },
-  "homepage": "https://github.com/dixieio/redux-json-api#readme",
-  "peerDependencies": {
-    "redux-thunk": ">=1.0.0"
-  },
+  "homepage": "https://github.com/jstafford/redux-json-api#readme",
   "devDependencies": {
     "babel-cli": "^6.0.0",
     "babel-eslint": "^8.0.3",
