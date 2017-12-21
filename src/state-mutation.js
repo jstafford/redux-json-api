@@ -1,6 +1,6 @@
 import equal from 'fast-deep-equal';
 import imm from 'object-path-immutable';
-import { hasOwnProperties } from './utils';
+import { hasOwnProperties, safeGet } from './utils';
 
 export const stateContainsResource = (state, resource) => {
   const updatePath = ['resources', resource.type, resource.id];
@@ -21,8 +21,11 @@ const updateOrInsertResource = (state, resource) => {
 
     const relationships = {};
     Object.keys(resource.relationships).forEach((relationship) => {
-      if (!resource.relationships[relationship].data && hasOwnProperties(curResource, ['relationships', relationship])) {
-        relationships[relationship] = curResource.relationships[relationship];
+      if (!resource.relationships[relationship].data) {
+        const relatedResources = safeGet(curResource, ['relationships', relationship], null);
+        if (relatedResources) {
+          relationships[relationship] = relatedResources;
+        }
       }
     });
     const immResource = imm(resource).set(['relationships'], relationships).value();
@@ -71,23 +74,21 @@ export const updateOrCreateSortInState = (state, payload) => {
   const queryArray = queryStr.split('&');
   const sortId = queryArray.filter(item => (item.startsWith('sort') || item.startsWith('filter'))).join('&');
   const { type } = payload.data[0];
-  const offset = hasOwnProperties(payload, ['meta', 'page', 'offset'])
-    ? payload.meta.page.offset
-    : 0;
-  const totalLen = hasOwnProperties(payload, ['meta', 'page', 'total'])
-    ? payload.meta.page.total
-    : offset + payload.data.length;
+  const offset = safeGet(payload, ['meta', 'page', 'offset'], 0);
+  const totalLen = safeGet(payload, ['meta', 'page', 'total'], Number.NaN);
+  const workingLen = totalLen !== Number.NaN ? totalLen : offset + payload.data.length;
   const updatePath = ['sorts', type, sortId];
-  const existingSort = hasOwnProperties(state, updatePath)
-    ? state.sorts[type][sortId]
-    : null;
+  const existingSort = safeGet(state, updatePath, null);
   let updatedSort;
-  if (!existingSort) {
-    updatedSort = new Array(totalLen);
-  } else if (existingSort.length < totalLen) {
-    updatedSort = existingSort.concat(new Array(totalLen - existingSort.length));
+  // Discard existingSort if totalLen is provided and the lengths don’t match.
+  // This means that resources have either been inserted or deleted,
+  // but we have no way of knowing where in the sort order.
+  if (!existingSort || (totalLen && existingSort.length !== totalLen)) {
+    updatedSort = new Array(workingLen);
+  } else if (existingSort.length < workingLen) {
+    updatedSort = existingSort.concat(new Array(workingLen - existingSort.length));
   } else {
-    updatedSort = existingSort.slice(0, Math.min(existingSort.length, totalLen));
+    updatedSort = existingSort.slice(0, Math.min(existingSort.length, workingLen));
   }
   payload.data.forEach((item, index) => {
     updatedSort[offset + index] = item.id;

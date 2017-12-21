@@ -10,10 +10,12 @@ import {
   updateOrCreateSortInState
 } from './state-mutation';
 
-import { apiRequest, getPaginationUrl, hasOwnProperties } from './utils';
+import { apiRequest, getPaginationUrl, hasOwnProperties, safeGet } from './utils';
 import {
   API_SET_AXIOS_CONFIG, API_HYDRATE, API_WILL_CREATE, API_CREATED, API_CREATE_FAILED, API_WILL_READ, API_READ, API_READ_FAILED, API_WILL_UPDATE, API_UPDATED, API_UPDATE_FAILED, API_WILL_DELETE, API_DELETED, API_DELETE_FAILED
 } from './constants';
+
+export { hasOwnProperties, safeGet };
 
 // Resource isInvalidating values
 export const IS_DELETING = 'IS_DELETING';
@@ -85,9 +87,10 @@ class ApiResponse {
 
 export const readEndpoint = (endpoint) => {
   return (dispatch, getState) => {
+    const state = getState().api;
     dispatch(apiWillRead(endpoint));
 
-    const { axiosConfig } = getState().api.endpoint;
+    const { axiosConfig } = state.endpoint;
 
     return new Promise((resolve, reject) => {
       apiRequest(endpoint, axiosConfig)
@@ -292,7 +295,8 @@ export const reducer = handleActions({
 
     let newState = updateOrInsertResourcesIntoState(state, resources);
 
-    if (hasOwnProperties(payload, ['links', 'self']) && payload.links.self.indexOf('sort') >= 0) {
+    const selfLink = safeGet(payload, ['links', 'self'], null);
+    if (selfLink && selfLink.indexOf('sort') >= 0) {
       newState = updateOrCreateSortInState(newState, payload);
     }
 

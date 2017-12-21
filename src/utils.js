@@ -52,14 +52,28 @@ export const hasOwnProperties = (obj, propertyTree) => {
   return true;
 };
 
-export const getPaginationUrl = (response, direction, path) => {
-  if (!response.links || !hasOwnProperties(response, ['links', direction])) {
-    return null;
+export const safeGet = (obj, path, defaultVal) => {
+  let curObj = obj;
+  const pathLen = path.length;
+  for (let i = 0; i < pathLen; i += 1) {
+    if (!(curObj instanceof Object)) {
+      return defaultVal;
+    }
+    const property = path[i];
+    const hasProperty = Object.prototype.hasOwnProperty.call(curObj, property);
+    if (!hasProperty) {
+      return defaultVal;
+    }
+    curObj = curObj[property];
   }
+  return curObj;
+};
 
-  const paginationUrl = response.links[direction];
+export const getPaginationUrl = (response, direction, path) => {
+  const paginationUrl = safeGet(response, ['links', direction], null);
   if (!paginationUrl) {
     return null;
   }
+
   return paginationUrl.replace(`${path}/`, '');
 };
