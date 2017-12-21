@@ -88,11 +88,14 @@ class ApiResponse {
 export const readEndpoint = (endpoint) => {
   return (dispatch, getState) => {
     const state = getState().api;
-    dispatch(apiWillRead(endpoint));
+    const pendingPromise = safeGet(state, ['pending', endpoint], null);
+    if (pendingPromise) {
+      return pendingPromise;
+    }
 
     const { axiosConfig } = state.endpoint;
 
-    return new Promise((resolve, reject) => {
+    const promise = new Promise((resolve, reject) => {
       apiRequest(endpoint, axiosConfig)
         .then((json) => {
           dispatch(apiRead({ endpoint, ...json }));
@@ -110,6 +113,9 @@ export const readEndpoint = (endpoint) => {
           reject(err);
         });
     });
+
+    dispatch(apiWillRead({ endpoint, promise }));
+    return promise;
   };
 };
 
@@ -282,8 +288,11 @@ export const reducer = handleActions({
     return imm(state).set(['status', 'isCreating'], state.status.isCreating - 1).value();
   },
 
-  [API_WILL_READ]: (state) => {
-    return imm(state).set(['status', 'isReading'], state.status.isReading + 1).value();
+  [API_WILL_READ]: (state, { payload }) => {
+    return imm(state)
+      .set(['status', 'isReading'], state.status.isReading + 1)
+      .set(['pending', payload.endpoint], payload.promise)
+      .value();
   },
 
   [API_READ]: (state, { payload }) => {
@@ -302,11 +311,15 @@ export const reducer = handleActions({
 
     return imm(newState)
       .set(['status', 'isReading'], state.status.isReading - 1)
+      .del(['pending', payload.endpoint])
       .value();
   },
 
-  [API_READ_FAILED]: (state) => {
-    return imm(state).set(['status', 'isReading'], state.status.isReading - 1).value();
+  [API_READ_FAILED]: (state, { payload }) => {
+    return imm(state)
+      .set(['status', 'isReading'], state.status.isReading - 1)
+      .del(['pending', payload.endpoint])
+      .value();
   },
 
   [API_WILL_UPDATE]: (state, { payload: resource }) => {
@@ -372,6 +385,7 @@ export const reducer = handleActions({
   endpoint: {
     axiosConfig: {}
   },
+  pending: {},
   resources: {},
   sorts: {}
 });
