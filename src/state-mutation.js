@@ -84,11 +84,13 @@ export const updateOrCreateSortInState = (state, payload) => {
   // This means that resources have either been inserted or deleted,
   // but we have no way of knowing where in the sort order.
   if (!existingSort || (totalLen && existingSort.length !== totalLen)) {
-    updatedSort = new Array(workingLen);
-  } else if (existingSort.length < workingLen) {
-    updatedSort = existingSort.concat(new Array(workingLen - existingSort.length));
+    updatedSort = [];
   } else {
-    updatedSort = existingSort.slice(0, Math.min(existingSort.length, workingLen));
+    // clone the existingSort
+    updatedSort = existingSort.slice();
+  }
+  if (updatedSort.length < workingLen) {
+    updatedSort.length = workingLen;
   }
   payload.data.forEach((item, index) => {
     updatedSort[offset + index] = item.id;
