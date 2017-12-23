@@ -262,9 +262,11 @@ describe('[State Mutation]: Create and update sorts', () => {
     });
 
     expect(updatedState.sorts.transactions).toBeInstanceOf(Object);
-    expect(updatedState.sorts.transactions['sort=customer&filter%5Breason%5D=refund']).toBeInstanceOf(Array);
-    expect(updatedState.sorts.transactions['sort=customer&filter%5Breason%5D=refund']).toEqual([
+    expect(updatedState.sorts.transactions['sort=customer&filter%5Breason%5D=refund']).toBeInstanceOf(Object);
+    expect(updatedState.sorts.transactions['sort=customer&filter%5Breason%5D=refund'].ids).toBeInstanceOf(Array);
+    expect(updatedState.sorts.transactions['sort=customer&filter%5Breason%5D=refund'].ids).toEqual([
       '12', '34', '56', '67'
     ]);
+    expect(updatedState.sorts.transactions['sort=customer&filter%5Breason%5D=refund'].total).toEqual(4);
   });
 });

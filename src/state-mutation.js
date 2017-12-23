@@ -66,35 +66,37 @@ export const ensureResourceTypeInState = (state, type) => {
 };
 
 export const updateOrCreateSortInState = (state, payload) => {
+  // sanity check
   if (!Array.isArray(payload.data) || payload.data.length < 1) {
     return state;
   }
+
+  // extract the sortID from the payload
   const queryOffset = payload.links.self.lastIndexOf('?');
   const queryStr = payload.links.self.substring(queryOffset + 1);
   const queryArray = queryStr.split('&');
   const sortId = queryArray.filter(item => (item.startsWith('sort') || item.startsWith('filter'))).join('&');
+
+  // clone the existing sort ids array, or make a new one if not present
   const { type } = payload.data[0];
-  const offset = safeGet(payload, ['meta', 'page', 'offset'], 0);
-  const totalLen = safeGet(payload, ['meta', 'page', 'total'], Number.NaN);
-  const workingLen = totalLen !== Number.NaN ? totalLen : offset + payload.data.length;
-  const updatePath = ['sorts', type, sortId];
+  const updatePath = ['sorts', type, sortId, 'ids'];
   const existingSort = safeGet(state, updatePath, null);
-  let updatedSort;
-  // Discard existingSort if totalLen is provided and the lengths don’t match.
-  // This means that resources have either been inserted or deleted,
-  // but we have no way of knowing where in the sort order.
-  if (!existingSort || (totalLen && existingSort.length !== totalLen)) {
-    updatedSort = [];
-  } else {
-    // clone the existingSort
-    updatedSort = existingSort.slice();
-  }
-  if (updatedSort.length < workingLen) {
-    updatedSort.length = workingLen;
+  const updatedSort = existingSort ? existingSort.slice() : [];
+
+  // insert the ids from the payload into the new sort Ids
+  const offset = safeGet(payload, ['meta', 'page', 'offset'], 0);
+  const idsLen = offset + payload.data.length;
+  if (updatedSort.length < idsLen) {
+    updatedSort.length = idsLen;
   }
   payload.data.forEach((item, index) => {
     updatedSort[offset + index] = item.id;
   });
 
-  return imm(state).set(updatePath, updatedSort).value();
+  // update the state
+  const total = safeGet(payload, ['meta', 'page', 'total'], Number.NaN);
+  return imm(state)
+    .set(updatePath, updatedSort)
+    .set(['sorts', type, sortId, 'total'], total)
+    .value();
 };
