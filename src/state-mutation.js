@@ -75,7 +75,7 @@ export const updateOrCreateSortInState = (state, payload) => {
   const queryOffset = payload.links.self.lastIndexOf('?');
   const queryStr = payload.links.self.substring(queryOffset + 1);
   const queryArray = queryStr.split('&');
-  const sortId = queryArray.filter(item => (item.startsWith('sort') || item.startsWith('filter'))).join('&');
+  const sortId = queryArray.filter(item => (!item.startsWith('page'))).join('&');
 
   // clone the existing sort ids array, or make a new one if not present
   const { type } = payload.data[0];
