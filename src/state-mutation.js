@@ -65,6 +65,21 @@ export const ensureResourceTypeInState = (state, type) => {
     : imm(state).set(path, {}).value();
 };
 
+export const ensureSortsTypeInState = (state, type) => {
+  const path = ['sorts', type];
+  return hasOwnProperties(state, path)
+    ? state
+    : imm(state).set(path, {}).value();
+};
+
+export const ensureSortIdInState = (state, type, sortId) => {
+  const newState = ensureSortsTypeInState(state, type);
+  const path = ['sorts', type, sortId];
+  return hasOwnProperties(newState, path)
+    ? newState
+    : imm(newState).set(path, {}).value();
+};
+
 export const updateOrCreateSortInState = (state, payload) => {
   // sanity check
   if (!Array.isArray(payload.data) || payload.data.length < 1) {
@@ -79,8 +94,9 @@ export const updateOrCreateSortInState = (state, payload) => {
 
   // clone the existing sort ids array, or make a new one if not present
   const { type } = payload.data[0];
+  const newState = ensureSortIdInState(state, type, sortId);
   const updatePath = ['sorts', type, sortId, 'ids'];
-  const existingSort = safeGet(state, updatePath, null);
+  const existingSort = safeGet(newState, updatePath, null);
   const updatedSort = existingSort ? existingSort.slice() : [];
 
   // insert the ids from the payload into the new sort Ids
@@ -93,9 +109,9 @@ export const updateOrCreateSortInState = (state, payload) => {
     updatedSort[offset + index] = item.id;
   });
 
-  // update the state
+  // update the newState
   const total = safeGet(payload, ['meta', 'page', 'total'], Number.NaN);
-  return imm(state)
+  return imm(newState)
     .set(updatePath, updatedSort)
     .set(['sorts', type, sortId, 'total'], total)
     .value();
